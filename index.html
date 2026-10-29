@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Évolution des Travaux - Construction de la Terrasse</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 20px; line-height: 1.5; }
+    
+    header { text-align: center; margin-bottom: 25px; }
+    header h1 { color: #ffffff; font-size: 1.8rem; margin-bottom: 8px; }
+    header p { color: var(--text-muted); font-size: 0.95rem; }
+
+    /* Barres de navigation */
+    .controls-bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto 25px;
+      padding: 12px;
+      background: var(--card-bg);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .nav-tabs { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .tab-btn {
+      padding: 10px 18px;
+      border: 1px solid var(--border);
+      background: #0f172a;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+    .tab-btn:hover { color: #ffffff; border-color: var(--primary); }
+    .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+    .section-content { display: none; }
+    .section-content.active { display: block; }
+
+    /* Grille dimensionnée pour photos max 500px */
+    .timeline-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 480px));
+      gap: 25px;
+      justify-content: center;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Cadre adapté aux photos de 500px */
+    .card-img-container {
+      width: 100%;
+      height: 500px;
+      max-height: 500px;
+      overflow: hidden;
+      background: #020617;
+      position: relative;
+      cursor: zoom-in;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-img-container img {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      transition: transform 0.3s ease;
+    }
+
+    .card-img-container:hover img {
+      transform: scale(1.03);
+    }
+
+    .zoom-hint {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(15, 23, 42, 0.85);
+      color: #cbd5e1;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      backdrop-filter: blur(4px);
+      pointer-events: none;
+    }
+
+    .card-body { padding: 18px; flex-grow: 1; display: flex; flex-direction: column; }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border-radius: 6px;
+      background: #0284c7;
+      color: #ffffff;
+      margin-bottom: 10px;
+      align-self: flex-start;
+    }
+    .badge-step2 { background: #d97706; }
+    .badge-step3 { background: #16a34a; }
+    
+    .card-title { font-size: 1.15rem; font-weight: 600; margin-bottom: 8px; color: #ffffff; }
+    .card-desc { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
+
+    .step-header {
+      max-width: 1200px;
+      margin: 0 auto 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #38bdf8;
+      text-align: center;
+    }
+
+    /* Lightbox Plein Écran */
+    .lightbox {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(2, 6, 23, 0.96);
+      z-index: 1000;
+      overflow: hidden;
+      touch-action: none;
+    }
+    .lightbox.active { display: block; }
+
+    .lightbox-toolbar {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      background: rgba(30, 41, 59, 0.95);
+      padding: 8px 16px;
+      border-radius: 30px;
+      border: 1px solid var(--border);
+      z-index: 1020;
+      backdrop-filter: blur(8px);
+    }
+
+    .lightbox-btn {
+      background: #0f172a;
+      color: #fff;
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+    .lightbox-btn:hover { background: var(--primary); border-color: var(--primary); }
+
+    .lightbox-close-btn {
+      position: absolute;
+      top: 20px;
+      right: 25px;
+      background: #ef4444;
+      color: #ffffff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      z-index: 1030;
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.2s, background-color 0.2s;
+    }
+    .lightbox-close-btn:hover {
+      background: #dc2626;
+      transform: scale(1.05);
+    }
+
+    .lightbox-viewport {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .lightbox-img {
+      max-width: 90vw;
+      max-height: 85vh;
+      object-fit: contain;
+      transform-origin: center center;
+      transition: transform 0.1s ease-out;
+      user-select: none;
+      -webkit-user-drag: none;
+      cursor: zoom-in;
+    }
+
+    .zoom-instructions {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #94a3b8;
+      font-size: 0.85rem;
+      background: rgba(15, 23, 42, 0.85);
+      padding: 6px 16px;
+      border-radius: 20px;
+      pointer-events: none;
+      z-index: 1020;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Projet Terrasse : Remplacement de la Verrière</h1>
+    <p>Suivi de l'évolution des travaux de construction entre les bâtiments</p>
+  </header>
+
+  <div class="controls-bar">
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('step1')">Étape 1 : État Initial (21/10/26)</button>
+      <button class="tab-btn" onclick="switchTab('step2')">Étape 2 : Ouverture & Porte-fenêtre</button>
+      <button class="tab-btn" onclick="switchTab('step3')">Étape 3 : Plancher & Dalle</button>
+    </div>
+  </div>
+
+  <!-- ÉTAPE 1 -->
+  <div id="step1" class="section-content active">
+    <div class="step-header">Étape 1 : État initial - La Verrière d'origine (21/10/2026)</div>
+    <div class="timeline-grid">
+      <div class="card">
+        <div class="card-img-container" onclick="openLightbox(this)">
+          <img src="public/img/etape1-etage.jpg" alt="Vue de la verrière depuis le 1er étage">
+          <span class="zoom-hint">🔍 Clic pour zoomer</span>
+        </div>
+        <div class="card-body">
+          <span class="badge">VUE DU DESSUS - 1ER ÉTAGE</span>
+          <div class="card-title">Verrière extérieure en vitrage armé</div>
+          <div class="card-desc">Vue depuis la fenêtre à volets bleus du 1er étage[cite: 1]. La verrière existante en profilés métalliques et verre armé occupe l'espace entre les deux bâtiments avant sa démolition[cite: 1].</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-img-container" onclick="openLightbox(this)">
+          <img src="public/img/etape1-rdc.jpg" alt="Vue de la structure depuis le rez-de-chaussée">
+          <span class="zoom-hint">🔍 Clic pour zoomer</span>
+        </div>
+        <div class="card-body">
+          <span class="badge">VUE DU DESSOUS - REZ-DE-CHAUSSÉE</span>
+          <div class="card-title">Structure porteuse vue de l'intérieur</div>
+          <div class="card-desc">Vue intérieure du rez-de-chaussée montrant les traverses et la charpente métallique supportant les plaques de verre armé[cite: 2].</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ÉTAPE 2 -->
+  <div id="step2" class="section-content">
+    <div class="step-header">Étape 2 : Ouverture de la façade & Pose de la porte-fenêtre</div>
+    <div class="timeline-grid">
+      <div class="card">
+        <div class="card-img-container" onclick="openLightbox(this)">
+          <img src="public/img/etape2A.jpg" alt="Démontage de la fenêtre et des volets">
+          <span class="zoom-hint">🔍 Clic pour zoomer</span>
+        </div>
+        <div class="card-body">
+          <span class="badge badge-step2">DÉMONTAGE</span>
+          <div class="card-title">Retrait des volets et de la fenêtre</div>
+          <div class="card-desc">Dépose des anciens volets en bois bleus et du châssis de fenêtre à l'étage pour préparer l'agrandissement de l'ouverture[cite: 3].</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-img-container" onclick="openLightbox(this)">
+          <img src="public/img/etape2B.jpg" alt="Fermeture provisoire en OSB">
+          <span class="zoom-hint">🔍 Clic pour zoomer</span>
+        </div>
+        <div class="card-body">
+          <span class="badge badge-step2">SÉCURISATION</span>
+          <div class="card-title">Fermeture provisoire en OSB</div>
+          <div class="card-desc">Mise en place de panneaux de bois OSB pour obturer temporairement la baie et protéger le logement pendant le chantier[cite: 4].</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-img-container" onclick="openLightbox(this)">
+          <img src="public/img/etape2C.jpg" alt="Démolition de l'allège">
+          <span class="zoom-hint">🔍 Clic pour zoomer</span>
+        </div>
+        <div class="card-body">
+          <span class="badge badge-step2">DÉMOLITION</span>
+          <div class="card-title">Démolition du soubassement</div>
+          <div class="card-desc">Découpe et démolition du mur sous la fenêtre (allège) afin d'abaisser l'ouverture jusqu'au niveau du futur plancher[cite: 5].</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-img-container" onclick="openLightbox(this)">
+          <img src="public/img/etape2D.jpg" alt="Préparation du support et maçonnerie">
+          <span class="zoom-hint">🔍 Clic pour zoomer</span>
+        </div>
+        <div class="card-body">
+          <span class="badge badge-step2">MAÇONNERIE</span>
+          <div class="card-title">Préparation du support & seuil</div>
+          <div class="card-desc">Réfection des jambages, dressage au mortier et création du seuil béton pour accueillir le dormant de la menuiserie[cite: 6].</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-img-container" onclick="openLightbox(this)">
+          <img src="public/img/etape2E.jpg" alt="Pose de la porte-fenêtre">
+          <span class="zoom-hint">🔍 Clic pour zoomer</span>
+        </div>
+        <div class="card-body">
+          <span class="badge badge-step2">POSE MENUISERIE</span>
+          <div class="card-title">Pose de la nouvelle porte-fenêtre</div>
+          <div class="card-desc">Installation de la porte-fenêtre 2 vantaux vitrée. L'accès direct entre le bâtiment et la future terrasse est désormais créé[cite: 7] !</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ÉTAPE 3 -->
+  <div id="step3" class="section-content">
+    <div class="step-header">Étape 3 : Structure, Plancher Hourdis & Coulage de la Dalle</div>
+    <div class="timeline-grid">
+      
+      <div class="card">
+        <div class="card-img-container" onclick="openLightbox(this)">
+          <img src="public/img/etape3A.jpg" alt="Création des engravures">
+          <span class="zoom-hint">🔍 Clic pour zoomer</span>
+        </div>
+        <div class="card-body">
+          <span class="badge badge-step3">GROS ŒUVRE</span>
+          <div class="card-title">Création des engravures dans le mur</div>
+          <div class="card-desc">Saignées et encastrements réalisés dans la maçonnerie existante pour venir y sceller solidement les micro-sommiers.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-img-container" onclick="openLightbox(this)">
+          <img src="public/img/etape3B.jpg" alt="Dépose de la verrière">
+          <span class="zoom-hint">🔍 Clic pour zoomer</span>
+        </div>
+        <div class="card-body">
+          <span class="badge badge-step3">DÉMOLITION</span>
+          <div class="card-title">Dépose de la verrière existante</div>
+          <div class="card-desc">Retrait complet de l'ancienne structure en verre et métal pour libérer l'emprise de la future terrasse.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-img-container" onclick="openLightbox(this)">
+          <img src="public/img/etape3C.jpg" alt="Mise en place des poutrelles">
+          <span class="zoom-hint">🔍 Clic pour zoomer</span>
+        </div>
+        <div class="card-body">
+          <span class="badge badge-step3">STRUCTURE</span>
+          <div class="card-title">Pose des micro-sommiers / poutrelles</div>
+          <div class="card-desc">Mise en place manuelle des éléments porteurs de la structure du plancher entre les deux bâtiments.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-img-container" onclick="openLightbox(this)">
+          <img src="public/img/etape3D.jpg" alt="Plancher hourdis isolé et feraillage">
+          <span class="zoom-hint">🔍 Clic pour zoomer</span>
+        </div>
+        <div class="card-body">
+          <span class="badge badge-step3">ISOLATION & FERRAILLAGE</span>
+          <div class="card-title">Plancher hourdis isolé & treillis</div>
+          <div class="card-desc">Pose des entrevous isolants entre les poutrelles, suivie de la mise en place du treillis soudé (ferraillage) pour consolider la dalle.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-img-container" onclick="openLightbox(this)">
+          <img src="public/img/etape3E.jpg" alt="Étaiement par-dessous">
+          <span class="zoom-hint">🔍 Clic pour zoomer</span>
+        </div>
+        <div class="card-body">
+          <span class="badge badge-step3"> SÉCURITÉ</span>
+          <div class="card-title">Étaiement de la structure</div>
+          <div class="card-desc">Installation des étais métalliques et madriers de soutien par-dessous pour supporter le poids du plancher hourdis et du béton lors du coulage.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-img-container" onclick="openLightbox(this)">
+          <img src="public/img/etape3F.jpg" alt="Préparation du chantier (bétonnière)">
+          <span class="zoom-hint">🔍 Clic pour zoomer</span>
+        </div>
+        <div class="card-body">
+          <span class="badge badge-step3">LOGISTIQUE</span>
+          <div class="card-title">Matériel de chantier en rue</div>
+          <div class="card-desc">Installation de la bétonnière et du camion benne pour la préparation et l'acheminement des matériaux nécessaires.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-img-container" onclick="openLightbox(this)">
+          <img src="public/img/etape3G.jpg" alt="Chariot télescopique en action">
+          <span class="zoom-hint">🔍 Clic pour zoomer</span>
+        </div>
+        <div class="card-body">
+          <span class="badge badge-step3">LEVAGE</span>
+          <div class="card-title">Manutention par chariot télescopique</div>
+          <div class="card-desc">Utilisation d'un engin de chantier pour hisser et verser directement le béton au niveau de l'ouverture de la terrasse.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-img-container" onclick="openLightbox(this)">
+          <img src="public/img/etape3H.jpg" alt="Coulage de la chape et dalle finie">
+          <span class="zoom-hint">🔍 Clic pour zoomer</span>
+        </div>
+        <div class="card-body">
+          <span class="badge badge-step3">FINITION DALLE</span>
+          <div class="card-title"> Coulage de la chape</div>
+          <div class="card-desc">Surface de la dalle tirée et lissée. La chape doit maintenant sécher pendant 10 jours avant la pose du système d'étanchéité et du carrelage.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Lightbox Plein Écran -->
+  <div class="lightbox" id="lightbox" onclick="handleBackgroundClick(event)">
+    
+    <button class="lightbox-close-btn" onclick="closeLightbox()">
+      ✕ Retour aux photos
+    </button>
+
+    <div class="lightbox-toolbar" onclick="event.stopPropagation()">
+      <button class="lightbox-btn" onclick="zoomIn(event)">Zoom +</button>
+      <button class="lightbox-btn" onclick="zoomOut(event)">Zoom -</button>
+      <button class="lightbox-btn" onclick="resetZoom(event)">Réinitialiser</button>
+    </div>
+    
+    <div class="lightbox-viewport" id="viewport">
+      <img class="lightbox-img" id="lightboxImg" src="" alt="Agrandissement" onclick="handleImageClick(event)">
+    </div>
+    
+    <div class="zoom-instructions">Cliquez sur "Retour aux photos" ou sur le fond noir pour quitter</div>
+  </div>
+
+  <script>
+    function switchTab(tabId) {
+      document.querySelectorAll('.section-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+
+    let scale = 1;
+    let translateX = 0;
+    let translateY = 0;
+    let isDragging = false;
+    let startX, startY;
+
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightboxImg');
+    const viewport = document.getElementById('viewport');
+
+    function updateTransform() {
+      lightboxImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+    }
+
+    function openLightbox(container) {
+      const img = container.querySelector('img');
+      lightboxImg.src = img.src;
+      lightbox.classList.add('active');
+      resetZoom();
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove('active');
+    }
+
+    function handleBackgroundClick(e) {
+      if (e.target === lightbox || e.target === viewport) {
+        closeLightbox();
+      }
+    }
+
+    function handleImageClick(e) {
+      e.stopPropagation();
+      if (scale === 1) {
+        scale = 2.5;
+      } else {
+        resetZoom();
+      }
+      updateTransform();
+    }
+
+    function zoomIn(e) {
+      if (e) e.stopPropagation();
+      scale = Math.min(scale * 1.5, 5);
+      updateTransform();
+    }
+
+    function zoomOut(e) {
+      if (e) e.stopPropagation();
+      scale = Math.max(scale / 1.5, 1);
+      if (scale === 1) { translateX = 0; translateY = 0; }
+      updateTransform();
+    }
+
+    function resetZoom(e) {
+      if (e) e.stopPropagation();
+      scale = 1;
+      translateX = 0;
+      translateY = 0;
+      updateTransform();
+    }
+
+    viewport.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      if (e.deltaY < 0) {
+        scale = Math.min(scale * 1.2, 5);
+      } else {
+        scale = Math.max(scale / 1.2, 1);
+        if (scale === 1) { translateX = 0; translateY = 0; }
+      }
+      updateTransform();
+    });
+
+    lightboxImg.addEventListener('mousedown', (e) => {
+      if (scale > 1) {
+        isDragging = true;
+        startX = e.clientX - translateX;
+        startY = e.clientY - translateY;
+        e.stopPropagation();
+      }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (isDragging && scale > 1) {
+        translateX = e.clientX - startX;
+        translateY = e.clientY - startY;
+        updateTransform();
+      }
+    });
+
+    window.addEventListener('mouseup', () => { isDragging = false; });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeLightbox();
+    });
+  </script>
+</body>
+</html>
